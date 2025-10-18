@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle dos clientes</title>
+    <title>Controle do Caderno</title>
     <style>
         /* --- Configurações Globais e Variáveis de Cor --- */
         :root {
@@ -15,6 +15,7 @@
             --cor-borda: #dee2e6;
             --cor-sucesso: #28a745;
             --cor-perigo: #dc3545;
+            --cor-info: #17a2b8;
         }
 
         * {
@@ -70,20 +71,22 @@
             font-size: 1.8rem;
         }
 
-        /* --- Formulário de Cadastro/Edição --- */
-        .form-container {
+        /* --- Bloco de Seção (Formulário, Backup, etc) --- */
+        .secao-container {
             background-color: #fdfdfd;
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--cor-borda);
             margin-bottom: 20px;
         }
-
-        .form-container h2 {
+        
+        .secao-container h2,
+        .secao-container h3 {
             margin-bottom: 15px;
             color: var(--cor-primaria);
         }
 
+        /* --- Formulário de Cadastro/Edição --- */
         .form-group {
             display: flex;
             flex-direction: column;
@@ -128,7 +131,6 @@
             background-color: var(--cor-secundaria);
             color: var(--cor-texto);
         }
-
         .btn-principal:hover {
             filter: brightness(0.95);
         }
@@ -139,6 +141,22 @@
         }
         .btn-secundario:hover {
             background-color: #5a6268;
+        }
+        
+        /* --- Seção de Import/Export --- */
+        .io-botoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* Para responsividade */
+        }
+        
+        .btn-io {
+            background-color: var(--cor-info);
+            color: white;
+            flex-grow: 1; /* Faz os botões ocuparem espaço */
+        }
+        .btn-io:hover {
+            background-color: #138496;
         }
 
         /* --- Seção de Busca --- */
@@ -185,7 +203,6 @@
             font-weight: 600;
         }
 
-        /* Zebra striping */
         tbody tr:nth-of-type(even) {
             background-color: #f9f9f9;
         }
@@ -221,7 +238,6 @@
             background-color: #c82333;
         }
 
-        /* --- Mensagem de "Sem Clientes" --- */
         #semClientes {
             text-align: center;
             padding: 20px;
@@ -237,11 +253,9 @@
                 gap: 15px;
                 text-align: center;
             }
-
             .logo-container {
                 flex-direction: column;
             }
-
             .logo-container h1 {
                 font-size: 1.5rem;
             }
@@ -252,17 +266,14 @@
                 margin: 10px;
                 padding: 15px;
             }
-
-            .form-botoes, .busca-container, .acoes-botoes {
+            .form-botoes, .busca-container, .acoes-botoes, .io-botoes {
                 flex-direction: column;
                 width: 100%;
             }
-
             .btn {
                 width: 100%;
             }
         }
-
     </style>
 </head>
 <body>
@@ -271,30 +282,36 @@
         <header class="header">
             <div class="logo-container">
                 <img src="logo.png" alt="Logo do Comércio">
-                <h1>Controle dos clientes</h1>
+                <h1>Controle do Caderno</h1>
             </div>
         </header>
 
-        <div class="form-container">
+        <div class="secao-container form-container">
             <h2 id="formTitulo">Cadastrar Novo Cliente</h2>
             <form id="formCliente">
                 <input type="hidden" id="clienteId">
-                
                 <div class="form-group">
                     <label for="nome">Nome Completo</label>
                     <input type="text" id="nome" placeholder="Ex: José da Silva" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="pagina">Número da Página no Caderno</label>
                     <input type="number" id="pagina" placeholder="Ex: 23" required>
                 </div>
-
                 <div class="form-botoes">
                     <button type="submit" class="btn btn-principal" id="btnSalvar">Salvar Cliente</button>
                     <button type="button" class="btn btn-secundario" id="btnCancelar" style="display: none;">Cancelar Edição</button>
                 </div>
             </form>
+        </div>
+
+        <div class="secao-container io-container">
+            <h3>Backup (Importar/Exportar)</h3>
+            <div class="io-botoes">
+                <button type="button" class="btn btn-io" id="btnExportar">Exportar Lista (.json)</button>
+                <button type="button" class="btn btn-io" id="btnImportarTrigger">Importar Lista (.json)</button>
+                <input type="file" id="inputImportar" accept=".json" style="display: none;">
+            </div>
         </div>
 
         <div class="busca-container">
@@ -329,6 +346,11 @@
         const btnSalvar = document.getElementById('btnSalvar');
         const btnCancelar = document.getElementById('btnCancelar');
         
+        // Elementos de Import/Export (NOVOS)
+        const btnExportar = document.getElementById('btnExportar');
+        const btnImportarTrigger = document.getElementById('btnImportarTrigger');
+        const inputImportar = document.getElementById('inputImportar');
+
         const inputBusca = document.getElementById('inputBusca');
         const btnLimparBusca = document.getElementById('btnLimparBusca');
         
@@ -345,28 +367,25 @@
          * Aplica filtro de busca e ordenação alfabética.
          */
         function renderizarTabela() {
-            // Limpa a tabela atual
             tabelaClientes.innerHTML = '';
-            
-            // 1. Obter o termo da busca (em minúsculas)
             const termoBusca = inputBusca.value.toLowerCase();
-
-            // 2. Filtrar clientes
             const clientesFiltrados = clientes.filter(cliente => 
                 cliente.nome.toLowerCase().includes(termoBusca)
             );
-
-            // 3. Ordenar alfabeticamente
+            
             clientesFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            // 4. Mostrar ou ocultar mensagem "Nenhum cliente"
             if (clientesFiltrados.length === 0) {
                 msgSemClientes.style.display = 'block';
+                if (clientes.length > 0) { // Se há clientes, mas nenhum corresponde à busca
+                    msgSemClientes.textContent = 'Nenhum cliente encontrado para "' + inputBusca.value + '".';
+                } else { // Se não há clientes cadastrados
+                    msgSemClientes.textContent = 'Nenhum cliente cadastrado.';
+                }
             } else {
                 msgSemClientes.style.display = 'none';
             }
 
-            // 5. Popular a tabela com os dados
             clientesFiltrados.forEach(cliente => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -385,8 +404,7 @@
          * Lida com o envio do formulário (Adicionar ou Editar)
          */
         function salvarCliente(event) {
-            event.preventDefault(); // Impede o recarregamento da página
-
+            event.preventDefault(); 
             const id = inputId.value;
             const nome = inputNome.value;
             const pagina = inputPagina.value;
@@ -397,24 +415,20 @@
             }
 
             if (id) {
-                // --- MODO EDIÇÃO ---
-                // Encontra o índice do cliente no array
                 const index = clientes.findIndex(c => c.id == id);
                 if (index !== -1) {
                     clientes[index].nome = nome;
                     clientes[index].pagina = pagina;
                 }
             } else {
-                // --- MODO CADASTRO ---
                 const novoCliente = {
-                    id: Date.now(), // ID único baseado no timestamp
+                    id: Date.now(),
                     nome: nome,
                     pagina: pagina
                 };
                 clientes.push(novoCliente);
             }
 
-            // Salva no localStorage, reseta o formulário e renderiza a tabela
             salvarNoLocalStorage();
             resetarFormulario();
             renderizarTabela();
@@ -424,23 +438,19 @@
          * Prepara o formulário para editar um cliente existente.
          */
         function prepararEdicao(id) {
-            // Encontra o cliente pelo ID
             const cliente = clientes.find(c => c.id == id);
             if (!cliente) return;
 
-            // Preenche o formulário com os dados do cliente
             inputId.value = cliente.id;
             inputNome.value = cliente.nome;
             inputPagina.value = cliente.pagina;
 
-            // Atualiza a UI do formulário
             formTitulo.textContent = 'Editar Cliente';
             btnSalvar.textContent = 'Salvar Alterações';
             btnCancelar.style.display = 'inline-block';
 
-            // Foca no campo nome
             inputNome.focus();
-            window.scrollTo(0, 0); // Rola para o topo da página
+            window.scrollTo(0, 0); 
         }
 
         /**
@@ -448,12 +458,10 @@
          */
         function removerCliente(id) {
             if (confirm('Tem certeza que deseja remover este cliente?')) {
-                // Filtra o array, mantendo todos MENOS o que tem o ID
                 clientes = clientes.filter(c => c.id != id);
-                
                 salvarNoLocalStorage();
                 renderizarTabela();
-                resetarFormulario(); // Caso o cliente removido estivesse em edição
+                resetarFormulario();
             }
         }
 
@@ -479,16 +487,10 @@
 
         // --- Funções de Persistência (localStorage) ---
 
-        /**
-         * Salva o array de clientes no localStorage.
-         */
         function salvarNoLocalStorage() {
             localStorage.setItem('clientesCaderno', JSON.stringify(clientes));
         }
 
-        /**
-         * Carrega os clientes do localStorage para o array.
-         */
         function carregarDoLocalStorage() {
             const clientesSalvos = localStorage.getItem('clientesCaderno');
             if (clientesSalvos) {
@@ -497,13 +499,110 @@
         }
 
 
+        // --- Funções de Importar/Exportar (NOVAS) ---
+
+        /**
+         * Exporta a lista de clientes para um arquivo .json.
+         */
+        function exportarClientes() {
+            if (clientes.length === 0) {
+                alert('Não há clientes cadastrados para exportar.');
+                return;
+            }
+
+            // Converte o array de clientes para uma string JSON formatada
+            const dataStr = JSON.stringify(clientes, null, 2);
+            // Cria um "Blob" (Binary Large Object) com o JSON
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            // Cria uma URL temporária para o Blob
+            const url = URL.createObjectURL(dataBlob);
+
+            // Cria um link <a> invisível para iniciar o download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'clientes_caderno.json'; // Nome do arquivo
+            document.body.appendChild(a);
+            a.click(); // Simula o clique no link
+
+            // Limpa o link e a URL da memória
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Importa clientes de um arquivo .json.
+         */
+        function importarClientes(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // Nenhum arquivo selecionado
+            }
+
+            // Confirmação antes de sobrescrever
+            if (clientes.length > 0) {
+                if (!confirm('Atenção: A importação substituirá TODOS os clientes atuais.\nDeseja continuar?')) {
+                    event.target.value = null; // Reseta o input
+                    return;
+                }
+            }
+
+            const reader = new FileReader();
+
+            // Evento que é disparado quando o arquivo é lido
+            reader.onload = (e) => {
+                try {
+                    const clientesImportados = JSON.parse(e.target.result);
+
+                    // Validação simples para ver se é um array
+                    if (!Array.isArray(clientesImportados)) {
+                        throw new Error('O arquivo não contém uma lista de clientes válida.');
+                    }
+                    
+                    // Validação mais profunda (opcional, mas recomendada)
+                    // Verifica se o primeiro item (se existir) tem as propriedades esperadas
+                    if (clientesImportados.length > 0 && 
+                        (!clientesImportados[0].hasOwnProperty('id') || 
+                         !clientesImportados[0].hasOwnProperty('nome') || 
+                         !clientesImportados[0].hasOwnProperty('pagina'))) {
+                        throw new Error('O formato dos dados no arquivo parece inválido.');
+                    }
+
+                    // Sucesso! Substitui a lista atual
+                    clientes = clientesImportados;
+                    salvarNoLocalStorage();
+                    renderizarTabela();
+                    alert(`Importação concluída! ${clientes.length} clientes carregados.`);
+
+                } catch (error) {
+                    alert('Erro ao importar o arquivo: ' + error.message);
+                } finally {
+                    event.target.value = null; // Reseta o input para permitir re-importar o mesmo arquivo
+                }
+            };
+
+            reader.onerror = () => {
+                alert('Erro ao ler o arquivo.');
+                event.target.value = null;
+            };
+
+            // Lê o arquivo como texto
+            reader.readAsText(file);
+        }
+
+
         // --- Inicialização e Event Listeners ---
 
-        // Adiciona os event listeners
+        // Listeners do formulário e busca
         form.addEventListener('submit', salvarCliente);
         btnCancelar.addEventListener('click', resetarFormulario);
         inputBusca.addEventListener('input', renderizarTabela); // Busca instantânea
         btnLimparBusca.addEventListener('click', limparBusca);
+
+        // Listeners de Import/Export (NOVOS)
+        btnExportar.addEventListener('click', exportarClientes);
+        btnImportarTrigger.addEventListener('click', () => inputImportar.click()); // Aciona o input oculto
+        inputImportar.addEventListener('change', importarClientes);
+
 
         // Função que roda quando a página é carregada
         document.addEventListener('DOMContentLoaded', () => {
