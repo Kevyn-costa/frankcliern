@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle dos clientes</title>
+    <style>
+        /* --- Configurações Globais e Variáveis de Cor --- */
+        :root {
+            --cor-primaria: #005a9c; /* Azul principal */
+            --cor-secundaria: #ffc107; /* Amarelo (Logo, botões) */
+            --cor-texto: #333;
+            --cor-fundo: #f4f7fa;
+            --cor-container: #ffffff;
+            --cor-borda: #dee2e6;
+            --cor-sucesso: #28a745;
+            --cor-perigo: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--cor-container);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Cabeçalho e Logo --- */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--cor-borda);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Para responsividade */
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-container img {
+            width: 70px; /* Tamanho da logo */
+            height: 70px;
+            object-fit: contain;
+            background-color: #eee; /* Fundo caso a logo.png seja transparente */
+            border-radius: 50%;
+            border: 2px solid var(--cor-primaria);
+        }
+
+        .logo-container h1 {
+            color: var(--cor-primaria);
+            font-size: 1.8rem;
+        }
+
+        /* --- Formulário de Cadastro/Edição --- */
+        .form-container {
+            background-color: #fdfdfd;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--cor-borda);
+            margin-bottom: 20px;
+        }
+
+        .form-container h2 {
+            margin-bottom: 15px;
+            color: var(--cor-primaria);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            padding: 12px;
+            border: 1px solid var(--cor-borda);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--cor-primaria);
+            box-shadow: 0 0 0 2px rgba(0, 90, 156, 0.2);
+        }
+
+        .form-botoes {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-principal {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-texto);
+        }
+
+        .btn-principal:hover {
+            filter: brightness(0.95);
+        }
+
+        .btn-secundario {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secundario:hover {
+            background-color: #5a6268;
+        }
+
+        /* --- Seção de Busca --- */
+        .busca-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #inputBusca {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid var(--cor-borda);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        #inputBusca:focus {
+            outline: none;
+            border-color: var(--cor-primaria);
+            box-shadow: 0 0 0 2px rgba(0, 90, 156, 0.2);
+        }
+
+        /* --- Tabela de Clientes --- */
+        .tabela-container {
+            overflow-x: auto; /* Para rolagem em telas pequenas */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        thead th {
+            background-color: var(--cor-primaria);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Zebra striping */
+        tbody tr:nth-of-type(even) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .acoes-botoes {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-acao {
+            padding: 5px 8px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+
+        .btn-editar {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-texto);
+        }
+        .btn-editar:hover {
+            filter: brightness(0.95);
+        }
+
+        .btn-remover {
+            background-color: var(--cor-perigo);
+            color: white;
+        }
+        .btn-remover:hover {
+            background-color: #c82333;
+        }
+
+        /* --- Mensagem de "Sem Clientes" --- */
+        #semClientes {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        /* --- Responsividade --- */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .logo-container {
+                flex-direction: column;
+            }
+
+            .logo-container h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .form-botoes, .busca-container, .acoes-botoes {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <img src="logo.png" alt="Logo do Comércio">
+                <h1>Controle dos clientes</h1>
+            </div>
+        </header>
+
+        <div class="form-container">
+            <h2 id="formTitulo">Cadastrar Novo Cliente</h2>
+            <form id="formCliente">
+                <input type="hidden" id="clienteId">
+                
+                <div class="form-group">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" placeholder="Ex: José da Silva" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pagina">Número da Página no Caderno</label>
+                    <input type="number" id="pagina" placeholder="Ex: 23" required>
+                </div>
+
+                <div class="form-botoes">
+                    <button type="submit" class="btn btn-principal" id="btnSalvar">Salvar Cliente</button>
+                    <button type="button" class="btn btn-secundario" id="btnCancelar" style="display: none;">Cancelar Edição</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="busca-container">
+            <input type="text" id="inputBusca" placeholder="🔎 Digite o nome para buscar...">
+            <button type="button" class="btn btn-secundario" id="btnLimparBusca">Limpar</button>
+        </div>
+
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Cliente</th>
+                        <th>Nº da Página</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaClientes">
+                    </tbody>
+            </table>
+            <p id="semClientes" style="display: none;">Nenhum cliente cadastrado.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Referências aos Elementos do DOM ---
+        const form = document.getElementById('formCliente');
+        const formTitulo = document.getElementById('formTitulo');
+        const inputId = document.getElementById('clienteId');
+        const inputNome = document.getElementById('nome');
+        const inputPagina = document.getElementById('pagina');
+        const btnSalvar = document.getElementById('btnSalvar');
+        const btnCancelar = document.getElementById('btnCancelar');
+        
+        const inputBusca = document.getElementById('inputBusca');
+        const btnLimparBusca = document.getElementById('btnLimparBusca');
+        
+        const tabelaClientes = document.getElementById('tabelaClientes');
+        const msgSemClientes = document.getElementById('semClientes');
+
+        // --- "Banco de Dados" (Array de Clientes) ---
+        let clientes = [];
+
+        // --- Funções Principais ---
+
+        /**
+         * Renderiza a tabela de clientes na tela.
+         * Aplica filtro de busca e ordenação alfabética.
+         */
+        function renderizarTabela() {
+            // Limpa a tabela atual
+            tabelaClientes.innerHTML = '';
+            
+            // 1. Obter o termo da busca (em minúsculas)
+            const termoBusca = inputBusca.value.toLowerCase();
+
+            // 2. Filtrar clientes
+            const clientesFiltrados = clientes.filter(cliente => 
+                cliente.nome.toLowerCase().includes(termoBusca)
+            );
+
+            // 3. Ordenar alfabeticamente
+            clientesFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            // 4. Mostrar ou ocultar mensagem "Nenhum cliente"
+            if (clientesFiltrados.length === 0) {
+                msgSemClientes.style.display = 'block';
+            } else {
+                msgSemClientes.style.display = 'none';
+            }
+
+            // 5. Popular a tabela com os dados
+            clientesFiltrados.forEach(cliente => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${cliente.nome}</td>
+                    <td>${cliente.pagina}</td>
+                    <td class="acoes-botoes">
+                        <button class="btn btn-acao btn-editar" onclick="prepararEdicao(${cliente.id})">Editar</button>
+                        <button class="btn btn-acao btn-remover" onclick="removerCliente(${cliente.id})">Remover</button>
+                    </td>
+                `;
+                tabelaClientes.appendChild(tr);
+            });
+        }
+
+        /**
+         * Lida com o envio do formulário (Adicionar ou Editar)
+         */
+        function salvarCliente(event) {
+            event.preventDefault(); // Impede o recarregamento da página
+
+            const id = inputId.value;
+            const nome = inputNome.value;
+            const pagina = inputPagina.value;
+
+            if (!nome || !pagina) {
+                alert('Por favor, preencha o nome e o número da página.');
+                return;
+            }
+
+            if (id) {
+                // --- MODO EDIÇÃO ---
+                // Encontra o índice do cliente no array
+                const index = clientes.findIndex(c => c.id == id);
+                if (index !== -1) {
+                    clientes[index].nome = nome;
+                    clientes[index].pagina = pagina;
+                }
+            } else {
+                // --- MODO CADASTRO ---
+                const novoCliente = {
+                    id: Date.now(), // ID único baseado no timestamp
+                    nome: nome,
+                    pagina: pagina
+                };
+                clientes.push(novoCliente);
+            }
+
+            // Salva no localStorage, reseta o formulário e renderiza a tabela
+            salvarNoLocalStorage();
+            resetarFormulario();
+            renderizarTabela();
+        }
+
+        /**
+         * Prepara o formulário para editar um cliente existente.
+         */
+        function prepararEdicao(id) {
+            // Encontra o cliente pelo ID
+            const cliente = clientes.find(c => c.id == id);
+            if (!cliente) return;
+
+            // Preenche o formulário com os dados do cliente
+            inputId.value = cliente.id;
+            inputNome.value = cliente.nome;
+            inputPagina.value = cliente.pagina;
+
+            // Atualiza a UI do formulário
+            formTitulo.textContent = 'Editar Cliente';
+            btnSalvar.textContent = 'Salvar Alterações';
+            btnCancelar.style.display = 'inline-block';
+
+            // Foca no campo nome
+            inputNome.focus();
+            window.scrollTo(0, 0); // Rola para o topo da página
+        }
+
+        /**
+         * Remove um cliente do sistema.
+         */
+        function removerCliente(id) {
+            if (confirm('Tem certeza que deseja remover este cliente?')) {
+                // Filtra o array, mantendo todos MENOS o que tem o ID
+                clientes = clientes.filter(c => c.id != id);
+                
+                salvarNoLocalStorage();
+                renderizarTabela();
+                resetarFormulario(); // Caso o cliente removido estivesse em edição
+            }
+        }
+
+        /**
+         * Limpa o formulário e o retorna ao modo de "Cadastro".
+         */
+        function resetarFormulario() {
+            form.reset();
+            inputId.value = '';
+            formTitulo.textContent = 'Cadastrar Novo Cliente';
+            btnSalvar.textContent = 'Salvar Cliente';
+            btnCancelar.style.display = 'none';
+        }
+
+        /**
+         * Limpa o campo de busca e re-renderiza a tabela.
+         */
+        function limparBusca() {
+            inputBusca.value = '';
+            renderizarTabela();
+        }
+
+
+        // --- Funções de Persistência (localStorage) ---
+
+        /**
+         * Salva o array de clientes no localStorage.
+         */
+        function salvarNoLocalStorage() {
+            localStorage.setItem('clientesCaderno', JSON.stringify(clientes));
+        }
+
+        /**
+         * Carrega os clientes do localStorage para o array.
+         */
+        function carregarDoLocalStorage() {
+            const clientesSalvos = localStorage.getItem('clientesCaderno');
+            if (clientesSalvos) {
+                clientes = JSON.parse(clientesSalvos);
+            }
+        }
+
+
+        // --- Inicialização e Event Listeners ---
+
+        // Adiciona os event listeners
+        form.addEventListener('submit', salvarCliente);
+        btnCancelar.addEventListener('click', resetarFormulario);
+        inputBusca.addEventListener('input', renderizarTabela); // Busca instantânea
+        btnLimparBusca.addEventListener('click', limparBusca);
+
+        // Função que roda quando a página é carregada
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDoLocalStorage();
+            renderizarTabela();
+        });
+
+    </script>
+</body>
+</html>
